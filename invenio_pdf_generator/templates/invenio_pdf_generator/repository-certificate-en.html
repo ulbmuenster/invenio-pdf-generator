@@ -1,0 +1,133 @@
+{#
+  Copyright (C) 2023-2026 University of Münster.
+
+  Invenio-Pdf-Generator is free software; you can redistribute it and/or
+  modify it under the terms of the MIT License; see LICENSE file for more
+  details.
+#}
+
+{%- extends "invenio_pdf_generator/base.html" %}
+
+{%- block page_body %}
+    <table id="tabelle_seitenkopf">
+      <tr>
+          <td colspan="2" id="linie_kopfzeile">
+              <hr/>
+          </td>
+      </tr>
+      <tr>
+          <td id="betreff">Publication of research data:<br/>Confirmation of receipt</td>
+          <td id="absender">Your Institution<br/>Your Street 1<br/>contact@example.org<br/>Tel.
+            +49 (0) 000 000-0
+          </td>
+      </tr>
+      <tr>
+          <td colspan="2" id="datum">{{ ingest_date }}</td>
+      </tr>
+    </table>
+    <p>Dear {{ salutation }} {{ creators[0].surname }},</p>
+    {% if embargo_date %}
+      <p id="haupttext">
+          you uploaded data to our repository for research data.
+          Until the {{ embargo_date }}, your chosen embargo date, only the metadata of your
+          data publication is publicly visible. Afterwards, your data is permanently and publicly accessible under the
+          DOI given below.
+      </p>
+    {% else %}
+      <p id="haupttext">
+          you uploaded data to our repository for research data.
+          This data is immediately publicly and permanently accessible under the DOI given below.
+      </p>
+    {% endif %}
+    <p style="width: 100%;text-align: justify;">Every co-author receives a copy of this document.</p>
+    <p id="grussformel">Yours faithfully<br/>Your Research Data Management Team</p>
+    <hr/>
+    {% if creators|length > 6 %}
+        <div style="page-break-before: always;"></div>
+    {% endif %}
+    <div id="div_metadaten">
+        <table id="tabelle_allgemeine_metadaten">
+            <tr>
+                <td id="feldnamen">Title</td>
+                <td>{{ title }}</td>
+            </tr>
+            <tr>
+                <td id="feldnamen">Subtitle</td>
+                {% if subtitle %}
+                <td>{{ subtitle }}</td>
+                {% else %}
+                <td>–</td>
+                {% endif %}
+            </tr>
+            <tr>
+                <td id="feldnamen">Size</td>
+                <td>{{ complete_size }}</td>
+            </tr>
+            <tr>
+                <td id="leerzeile"></td>
+                <td id="leerzeile"></td>
+            </tr>
+            {% if embargo_date %}
+              <tr>
+                <td id="feldnamen">Embargo ends at</td>
+                <td>{{ embargo_date }}</td>
+              </tr>
+            {%  endif %}
+            <tr>
+                <td id="feldnamen">DOI of publication</td>
+                <td>{{ identifier }}</td>
+            </tr>
+            <tr>
+                <td id="feldnamen">Link to publication data</td>
+                <td><a href="{{ download_url }}">{{ download_url }}</a>
+                </td>
+            </tr>
+        </table>
+        <p id="titel_autoren_metadaten">Responsible for uploading the publication</p>
+        <p id="name_autor">{{ creators[0].surname }}, {{ creators[0].prename }}
+            <img id="img_icon" src="{{ author_logo_path }}" alt=""/>
+            <img id="img_icon" src="{{ curator_logo_path }}" alt=""/>
+        </p>
+        {% if creators[0].affiliations %}
+            <p id="adresse_autor">{{ creators[0].affiliations[0].entity_name }}</p>
+        {% else %}
+            <p id="adresse_autor"/>
+        {% endif %}
+        {% if creators|length > 1 %}
+          <p id="titel_autoren_metadaten">Further involved persons</p>
+          {% for creator in creators %}
+            {% if creators[0].account != creator.account %}
+              <p id="name_autor">
+                {{ creator.surname }}, {{ creator.prename}}
+                <img id="img_icon" src="{{ author_logo_path }}" alt=""/>
+                {% for curator in curators %}
+                  {% if curator.account == creator.account %}
+                    <img id="img_icon" src="{{ curator_logo_path }}" alt=""/>
+                  {% endif %}
+                {% endfor %}
+              </p>
+              {% if creator.affiliations %}
+                  <p id="adresse_autor">{{ creator.affiliations[0].entity_name }}</p>
+              {% else %}
+                  <p id="adresse_autor"/>
+              {% endif %}
+            {% endif %}
+            {% if (loop.index + 1) % 16 == 0 %}
+              </div>
+              <div style="page-break-before: always;"></div>
+              <div id="div_metadaten">
+            {% endif %}
+          {% endfor %}
+        {% endif %}
+        <p id="p_metadaten_legende">
+            <img style="margin-left: 3mm" id="img_icon" src="{{ author_logo_path }}"
+                 alt=""/>Author
+            <img style="margin-left: 3mm" id="img_icon"
+                 src="{{ curator_logo_path }}" alt=""/>Data curator<span id="index">1</span>
+        </p>
+    </div>
+    <p id="div_fusszeile">
+        <span id="index">1</span>Requirement for authentication is a valid institutional ID
+    </p>
+{%- endblock %}
+
